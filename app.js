@@ -14,8 +14,15 @@ Organizer = require('./models/organizers');
 mongoose.connect('mongodb://localhost/finzDB', { useNewUrlParser: true } )
 var db = mongoose.connection;
 
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
+
 app.get('/', function(req, res){
-	res.send('Please use /api/events or api/organizers or api/places or api/categories');
+	res.send('Please use /api/events, api/organizers, api/places, api/categories');
 });
 
 app.get('/api/events', function(req, res){

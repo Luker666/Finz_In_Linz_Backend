@@ -9,7 +9,7 @@
  		required: true
  	},
  	name:{
- 		type: String, //change to datetime?! 
+ 		type: String, 
  		required :false
  	},
  	nested:{
