@@ -1,9 +1,6 @@
 var mongoose = require('mongoose');
 var moment = require('moment');
 
-var today = moment().startOf('day');
-var tomorrow = moment(today).endOf('day');
-
 
  //Event Schema 
  var eventSchema = mongoose.Schema({
@@ -34,7 +31,7 @@ var tomorrow = moment(today).endOf('day');
  	}
  });
 
- var Event = module.exports = mongoose.model('Event', eventSchema);
+var Event = module.exports = mongoose.model('Event', eventSchema);
 
 //Get Events
 module.exports.getEvents = function(callback, limit){
@@ -46,28 +43,17 @@ module.exports.getEventById = function(id, callback){
 	Event.findById(id, callback);
 }
 
-//Get EventsbyID TBD -> Searchstring
+
 module.exports.getEventsByFilters = function(title, firstdate, lastdate, category, location, organizer, callback){
-	/*
-	console.log('$gte: ' + new Date(2016,09,30));
-	Event.find(
-		{
-		    lastdate: {
-		        $lte: new Date(2016,09,30)
-		    }
-		}, callback
-		);
-	*/
 	var queryCond = {}
 		if(title){
-		   queryCond.title=title;
+		   queryCond.title= new RegExp(title, 'i');
 		}
-		if(firstdate){
-		   queryCond.firstdate = '$gte: ' + moment(firstdate).toDate();
-		  //queryCond.firstdate = '$gte: ' + firstdate;
+		if(firstdate){ 
+		   queryCond.firstdate = {$gte: firstdate};
 		}
 		if(lastdate){
-		   queryCond.lastdate = '$lte: ' + moment(lastdate).toDate();
+		   queryCond.lastdate = {$lte: lastdate};
 		}
 		if(category){
 		   queryCond.category=category;
@@ -81,4 +67,3 @@ module.exports.getEventsByFilters = function(title, firstdate, lastdate, categor
 	console.log(queryCond)
 	Event.find(queryCond, callback);
 }
-

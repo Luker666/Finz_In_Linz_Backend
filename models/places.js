@@ -4,7 +4,7 @@
  //Event Schema 
  var placeSchema = mongoose.Schema({
  	//
- 	locationid:{
+ 	id:{
  		type: String,
  		required: true
  	},

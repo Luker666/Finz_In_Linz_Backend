@@ -4,7 +4,7 @@
  //Event Schema 
  var categorySchema = mongoose.Schema({
  	//category id, name -> subcategories [...] names [...] AUch für stadteile -> categoryID = ""
- 	categoryid:{
+ 	id:{
  		type: String,
  		required: true
  	},

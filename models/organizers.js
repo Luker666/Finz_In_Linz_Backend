@@ -4,7 +4,7 @@
  //Event Schema 
  var organizerSchema = mongoose.Schema({
  	//
- 	organizerid:{
+ 	id:{
  		type: String,
  		required: true
  	},
