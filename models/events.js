@@ -28,6 +28,16 @@ var moment = require('moment');
  	category:{
  		type: String,
  		required :false
+ 	},
+ 	date:{
+ 		'@dFrom': { 		
+ 			type: String,
+ 			required :false
+ 		},
+ 		'@dTo': { 		
+ 			type: String,
+ 			required :false
+ 		}
  	}
  });
 
