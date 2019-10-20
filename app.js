@@ -146,5 +146,14 @@ app.get('/api/comments', function(req, res){
 	});
 });
 
+app.get('/api/comments/:eventID', function(req, res){
+	Comment.getCommentsByEventID(req.params.eventID, function(err, comments){
+		if(err){
+			throw err;
+		}
+		res.json(comments);
+	});
+});
+
 app.listen(3000);
 console.log('Running on port 3000');

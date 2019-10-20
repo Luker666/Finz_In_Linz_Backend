@@ -32,15 +32,20 @@
 
  var Comment = module.exports = mongoose.model('Comment', commentSchema);
 
-//Get Places
+//Get All Comments
 module.exports.getComments = function(callback, limit){
 	Comment.find(callback).limit(limit);
 }
 
 
-//Get Places
-module.exports.getCommentById = function(id, callback){
-	Comment.findById(id, callback);
+//Get Comments By Event ID
+module.exports.getCommentsByEventID = function(event_id, callback){
+	var queryCond = {}
+		if(event_id){
+		   queryCond.event_id=event_id;
+		}
+	console.log(queryCond)
+	Comment.find(queryCond, callback);
 }
 
 
