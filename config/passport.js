@@ -5,7 +5,6 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/users');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-const findOrCreate = require('mongoose-findorcreate');
 const config = require('../config/config.json');
 const prodConfig = config.production;
 
