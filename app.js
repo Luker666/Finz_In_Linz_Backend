@@ -75,10 +75,10 @@ app.get('/api/oauth/google',
 	passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
 
 app.get('/api/oauth/google/callback', 
-  passport.authenticate('google', { failureRedirect: 'api/login' }),
-  function(req, res) {
-    res.redirect('api/events');
-  });
+	passport.authenticate('google', { failureRedirect: 'api/login' }),
+	function(req, res) {
+		res.redirect('api/events');
+	});
 
 
 app.post('/api/login', function(req, res, next) {

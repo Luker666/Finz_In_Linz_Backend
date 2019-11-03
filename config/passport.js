@@ -35,34 +35,34 @@ module.exports = function(passport) {
 
 
   passport.use(new GoogleStrategy({
-      clientID: prodConfig.clientID,
-      clientSecret: prodConfig.clientSecret,
-      callbackURL: prodConfig.callbackURL
-    },
-    function(accessToken, refreshToken, profile, done) {
-      User.findOne({
-            'provider_ID': profile.id, provider: 'google'
-        },function(err, user) {
-            if (err) {
-                return done(err);
-            }
-            if (!user) {
-                user = new User({
-                    name: profile.displayName,
-                    email: 'google',
-                    provider: 'google',
-                    'provider_ID': profile.id
-                });
-                user.save(function(err) {
-                    if (err) console.log(err);
-                    return done(err, user);
-                });
-            } else {
+    clientID: prodConfig.clientID,
+    clientSecret: prodConfig.clientSecret,
+    callbackURL: prodConfig.callbackURL
+  },
+  function(accessToken, refreshToken, profile, done) {
+    User.findOne({
+      'provider_ID': profile.id, provider: 'google'
+    },function(err, user) {
+      if (err) {
+        return done(err);
+      }
+      if (!user) {
+        user = new User({
+          name: profile.displayName,
+          email: 'google',
+          provider: 'google',
+          'provider_ID': profile.id
+        });
+        user.save(function(err) {
+          if (err) console.log(err);
+          return done(err, user);
+        });
+      } else {
                 //found user. Return
                 return done(err, user);
-            }
-         });
-    }
+              }
+            });
+  }
   ));
 
   passport.serializeUser(function(user, done) {

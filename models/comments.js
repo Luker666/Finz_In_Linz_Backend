@@ -15,19 +15,19 @@
  		type: Number,
  		required: true
  	},
-	published:{
-		type: Date,
-		default: Date.now
-	},
+ 	published:{
+ 		type: Date,
+ 		default: Date.now
+ 	},
  	rating:{
-		type: Number,
-		min: 0, max: 5,
-		required: false
-	},
+ 		type: Number,
+ 		min: 0, max: 5,
+ 		required: false
+ 	},
  	text:{
-		type: String,
-		required: false
-	}
+ 		type: String,
+ 		required: false
+ 	}
  });
 
  var Comment = module.exports = mongoose.model('Comment', commentSchema);
@@ -41,9 +41,9 @@ module.exports.getComments = function(callback, limit){
 //Get Comments By Event ID
 module.exports.getCommentsByEventID = function(event_id, callback){
 	var queryCond = {}
-		if(event_id){
-		   queryCond.event_id=event_id;
-		}
+	if(event_id){
+		queryCond.event_id=event_id;
+	}
 	console.log(queryCond)
 	Comment.find(queryCond, callback);
 }
