@@ -2,8 +2,14 @@ var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
+var bcrypt = require('bcryptjs');
+var session = require('express-session');
+var passport = require('passport');
+var {ensureAuthenticated} = require('./config/auth');
+var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
 
+User = require('./models/users');
 Event = require('./models/events');
 Category = require('./models/categories');
 Place = require('./models/places');
@@ -11,6 +17,8 @@ Organizer = require('./models/organizers');
 Comment = require('./models/comments');
 
 
+//Passport config
+require('./config/passport')(passport);
 
 //Connect to mongoose 
 mongoose.connect('mongodb://localhost/finzDB', { useNewUrlParser: true } )
@@ -29,19 +37,148 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	next();
 });
+
+//Express Session middleware
+app.use(session({
+	secret: 'secret',
+	resave: true,
+	saveUninitialized: true
+}));
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
 
 //Check for DB errors
 db.on('error', function(err){
 	console.log(err);
 });
 
+
+//Routes
+
+//Default Route
 app.get('/', function(req, res){
 	res.send('Please use /api/events, api/organizers, api/places, api/categories, api/comments');
 });
+
+
+
+//Authentication routes
+
+//Google OAUTH 2.0
+app.get('/api/oauth/google', 
+	passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
+
+app.get('/api/oauth/google/callback', 
+  passport.authenticate('google', { failureRedirect: 'api/login' }),
+  function(req, res) {
+    res.redirect('api/events');
+  });
+
+
+app.post('/api/login', function(req, res, next) {
+	passport.authenticate('local', function(err, user, info) {
+		if (err) { 
+			return next(err); 
+		}
+		if (!user) { 
+			return res.status(404).json({
+				error: {
+					message: 'error',
+					status: 'User not signed in',
+				},
+			}); 
+		}
+		req.logIn(user, function(err) {
+			if (err) { 
+				return next(err); 
+			}
+			return res.status(200).json({
+				success: {
+					message: 'success',
+					status: 'User signed in',
+				},
+			});
+		});
+	})(req, res, next);
+});
+
+
+app.get('/api/logout', function(req, res, next) {
+	req.logout();
+	return res.status(200).json({
+		success: {
+			message: 'success',
+			status: 'User succesfully signed out',
+		},
+	});
+});
+
+
+app.get('/api/register', (req, res) => res.send('Register'));
+
+app.post('/api/register', (req, res) => {
+	//console.log(req.body)
+	const {name, email, password, password2} = req.body;
+	let errors = [];
+
+	//Check required fields
+	if(!name || !email || !password || !password2){
+		errors.push({msg: 'Please fill in all fields'});
+	}
+
+	//Check passwords match
+	if(password !== password2) {
+		errors.push({msg: 'Passwords do not match'});
+	}
+
+	//Check password length
+	if(password.length < 6){
+		errors.push({msg: 'Passwords should be at least 6 characters'});
+	}
+
+	if(errors.length > 0){
+		res.send(errors);
+	} else {
+		//res.send('Validation complete');
+		User.findOne({email:email})
+		.then(user => {
+			if(user) {
+				errors.push({msg: 'Email is already registered'});
+				res.send(errors);
+			} else {
+				const newUser = new User({
+					name, 
+					email,
+					password
+				});
+			//console.log(newUser)
+			//res.send('registration complete');
+
+			//Hash Password
+			bcrypt.genSalt(10, (err, salt) => 
+				bcrypt.hash(newUser.password, salt, (err, hash) => {
+					if(err) throw err;
+					// Set passowrd to hashed
+					newUser.password = hash;
+					//Save User
+					newUser.save()
+					.then(res.send('New User Registered'))
+					.catch(err => console.log(err));
+
+				}))
+		}
+	});
+	}
+});
+
+
+//Event Routes
 
 app.get('/api/events', function(req, res){
 	Event.getEvents(function(err, events){
@@ -117,7 +254,8 @@ app.get('/api/organizers', function(req, res){
 	});
 });
 
-app.post('/api/comments', function(req, res){
+//Comments Routes
+app.post('/api/comments', ensureAuthenticated,(req, res) => {
 	let comment = new Comment();
 	comment.event_id = req.body.event_id;
 	comment.user_name = req.body.user_name;
@@ -125,14 +263,17 @@ app.post('/api/comments', function(req, res){
 	comment.published = req.body.published;
 	comment.rating = req.body.rating;
 	comment.text = req.body.text;
-	console.log(req.body);
+	comment.published = new Date();
+	//console.log(req.body);
 
 	comment.save(function(err){
 		if(err){
 			console.log(err);
 			return;
 		} else {
-			res.redirect('/');
+			res.json({
+				comment
+			});
 		}
 	});
 });
