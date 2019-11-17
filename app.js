@@ -80,6 +80,10 @@ app.get('/api/oauth/google/callback',
 		res.redirect('api/events');
 	});
 
+app.get('/api/oauth/googleUserProfile', 
+	passport.authenticate('google', { failureRedirect: 'api/login' }),
+	(req, res) =>{ res.send(req.user)});
+
 
 app.post('/api/login', function(req, res, next) {
 	passport.authenticate('local', function(err, user, info) {
