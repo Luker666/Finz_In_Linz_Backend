@@ -64,7 +64,11 @@ module.exports.getPlaces = function(callback, limit){
 
 //Get Places
 module.exports.getPlaceById = function(id, callback){
-	Place.findById(id, callback);
+	var queryCond = {}
+	if(id){
+		queryCond.id=id;
+	}
+	Place.find(queryCond, callback);
 }
 
 
