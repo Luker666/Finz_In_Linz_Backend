@@ -42,6 +42,11 @@ app.use(function(req, res, next) {
 	next();
 });
 
+app.all('/*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    next();
+});
+
 //Express Session middleware
 app.use(session({
 	secret: 'secret',
