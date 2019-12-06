@@ -86,50 +86,5 @@ Place.find()
               });
 
 console.log('Places insert finished!\n');
-/*
-console.log(Organizers insert starting:\n);
-sleep(1100);
-Organizer.find()
-              .then((organizers) => {
-              organizers.forEach((doc, callback) => {
-                  let {street, postcode, city, name, _id} = doc;
-                  if(street){
-                    if(postcode){
-                      if(city){
-                        //TBD: IF Street or anything else missing select by other search criteria?! Maybe place name + city?!  
-                        opencage.geocode({key: OCD_API_KEY, q: street + ' ' + postcode + ' ' + city}, callback).then(data => { 
-                        if (data.status.code == 200) {
-                            var organizer = data.results[0];
-                            //console.log(organizer.geometry.lat);
-                            //console.log(organizer.geometry.lng);
-                            
-                            if(organizer.geometry.lat){
-                              if(organizer.geometry.lng){
-                                Organizer.updateOne(
-                                  {_id: _id},
-                                  {$set: {latitude: organizer.geometry.lat, longitude: organizer.geometry.lng}},
-                                  (err, data) => {
-                                      err ? console.log(err) : console.log(data);
-                                  }
-                                ); 
-                              }
-                            }
-                        } else if (data.status.code == 402) {
-                          console.log('hit free-trial daily limit');
-                          console.log('become a customer: https://opencagedata.com/pricing'); 
-                        } else {
-                          // other possible response codes:
-                          // https://opencagedata.com/api#codes
-                          console.log('error', data.status.message);
-                        }
-                      }).catch(error => {
-                        console.log('error', error.message);
-                      });
-                        }
-                     }
-                  }
-                  sleep(1100);
-              })// end forEach
-              });
-console.log('Organizers insert finished!');
-*/
+
+

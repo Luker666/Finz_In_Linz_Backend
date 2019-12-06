@@ -305,5 +305,38 @@ app.get('/api/comments/:eventID', function(req, res){
 	});
 });
 
+app.get('/api/ratingsStars/:eventID', (async function(req, res) {
+	//0 returns overall Rating Count, then Stars 1,2,3,4,5
+	var ratingsMap = new Map();
+	var ratings = [];
+	var sumRating;
+	var countRatings;
+
+	for(var i=0; i<=5; i++){
+		//console.log(i);
+		var filter = {};
+		if(i == 0){filter.event_id=req.params.eventID, filter.rating={$gt:0, $lt:6};};
+		if(i > 0){filter.event_id=req.params.eventID; filter.rating=i;};
+		await Comment.countDocuments(filter, (async function(err, result) {
+			if (err) {
+				console.log(err);
+			} else {
+		      //res.json("Count Ratings Total: " + result);
+		      //aratings += result + "; ";
+		      //sumRating += await result*i;
+		      await ratings.push(result);
+		      //console.log(i + ';' + result);
+		      //console.log(sumRating);
+		      //ratingsMap.set(result);
+		  }
+		}));
+	}
+	console.log('done');
+	if (ratings.length == 6){
+		return res.json(ratings);
+	} else return res.json({'error': 'Ratings were not loaded properly'});
+}));
+
+
 app.listen(3000);
 console.log('Running on port 3000');
