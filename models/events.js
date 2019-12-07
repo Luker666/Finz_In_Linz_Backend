@@ -29,6 +29,41 @@ var moment = require('moment');
  		type: String,
  		required :false
  	},
+ 	ratingCount:{
+ 		type: Number,
+ 		required: false,
+ 		default: 0
+ 	},
+ 	ratingsFive:{
+ 		type: Number,
+ 		required: false,
+ 		default: 0
+ 	},
+ 	ratingsFour:{
+ 		type: Number,
+ 		required: false,
+ 		default: 0
+ 	},
+ 	ratingsThree:{
+ 		type: Number,
+ 		required: false,
+ 		default: 0
+ 	},
+ 	ratingsTwo:{
+ 		type: Number,
+ 		required: false,
+ 		default: 0
+ 	},
+ 	ratingsOne:{
+ 		type: Number,
+ 		required: false,
+ 		default: 0
+ 	},
+ 	avgRating:{
+ 		type: Number,
+ 		required: false,
+ 		default: 0
+ 	},
  	date:{
  		'@dFrom': { 		
  			type: String,

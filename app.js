@@ -42,6 +42,11 @@ app.use(function(req, res, next) {
 	next();
 });
 
+app.all('/*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    next();
+});
+
 //Express Session middleware
 app.use(session({
 	secret: 'secret',
@@ -259,8 +264,10 @@ app.get('/api/organizers', function(req, res){
 });
 
 //Comments Routes
-app.post('/api/comments', ensureAuthenticated,(req, res) => {
+app.post('/api/comments',(req, res) => { //ensureAuthenticated
 	let comment = new Comment();
+	var eventid = req.body.event_id;
+	var ratingPosted = req.body.rating;
 	comment.event_id = req.body.event_id;
 	comment.user_name = req.body.user_name;
 	comment.user_id = req.body.user_id;
@@ -268,7 +275,52 @@ app.post('/api/comments', ensureAuthenticated,(req, res) => {
 	comment.rating = req.body.rating;
 	comment.text = req.body.text;
 	comment.published = new Date();
-	//console.log(req.body);
+	
+
+	console.log(eventid);
+
+	Event.findOne({id: eventid}, function(err, foundObject){
+		if(err) {
+			console.log(err);
+			//res.status(500).send();
+		} else {
+			if(!foundObject){
+				//res.status(404).send();
+				console.log('no object found');
+			} else {
+				if (ratingPosted == 5) {
+					foundObject.ratingsFive += 1;
+					foundObject.ratingCount += 1;
+					foundObject.avgRating = (foundObject.ratingsFive * 5 + foundObject.ratingsFour * 4 + foundObject.ratingsThree * 3 + foundObject.ratingsTwo * 2 + foundObject.ratingsOne * 1) / foundObject.ratingCount
+					foundObject.save();
+				}
+				if (ratingPosted == 4) {
+					foundObject.ratingsFour += 1;
+					foundObject.ratingCount += 1;
+					foundObject.avgRating = (foundObject.ratingsFive * 5 + foundObject.ratingsFour * 4 + foundObject.ratingsThree * 3 + foundObject.ratingsTwo * 2 + foundObject.ratingsOne * 1) / foundObject.ratingCount
+					foundObject.save();
+				}
+				if (ratingPosted == 3) {
+					foundObject.ratingsThree += 1;
+					foundObject.ratingCount += 1;
+					foundObject.avgRating = (foundObject.ratingsFive * 5 + foundObject.ratingsFour * 4 + foundObject.ratingsThree * 3 + foundObject.ratingsTwo * 2 + foundObject.ratingsOne * 1) / foundObject.ratingCount
+					foundObject.save();
+				}
+				if (ratingPosted == 2) {
+					foundObject.ratingsTwo += 1;
+					foundObject.ratingCount += 1;
+					foundObject.avgRating = (foundObject.ratingsFive * 5 + foundObject.ratingsFour * 4 + foundObject.ratingsThree * 3 + foundObject.ratingsTwo * 2 + foundObject.ratingsOne * 1) / foundObject.ratingCount
+					foundObject.save();
+				}
+				if (ratingPosted == 1) {
+					foundObject.ratingsOne += 1;
+					foundObject.ratingCount += 1;
+					foundObject.avgRating = (foundObject.ratingsFive * 5 + foundObject.ratingsFour * 4 + foundObject.ratingsThree * 3 + foundObject.ratingsTwo * 2 + foundObject.ratingsOne * 1) / foundObject.ratingCount
+					foundObject.save();
+				}
+			}
+		}
+	})
 
 	comment.save(function(err){
 		if(err){
@@ -299,6 +351,8 @@ app.get('/api/comments/:eventID', function(req, res){
 		res.json(comments);
 	});
 });
+
+
 
 app.listen(3000);
 console.log('Running on port 3000');
