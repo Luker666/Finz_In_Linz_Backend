@@ -85,7 +85,9 @@ module.exports.getEvents = function(callback, limit){
 
 //Get EventsbyID
 module.exports.getEventById = function(id, callback){
-	Event.findById(id, callback);
+	var queryCondEventByID = {};
+	queryCondEventByID.id = id;
+	Event.find(queryCondEventByID, callback);
 }
 
 

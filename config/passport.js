@@ -5,10 +5,11 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/users');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-const config = require('../config/config.json');
+const config = require('../config/config.js');
 const prodConfig = config.production;
 
 module.exports = function(passport) {
+/*
   passport.use(
     new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
       // Match user
@@ -31,12 +32,12 @@ module.exports = function(passport) {
       });
     })
     );
-
+*/
 
   passport.use(new GoogleStrategy({
-    clientID: prodConfig.clientID,
-    clientSecret: prodConfig.clientSecret,
-    callbackURL: prodConfig.callbackURL
+      clientID        : config.auth.google.clientId,
+      clientSecret    : config.auth.google.clientSecret,
+      callbackURL     : config.auth.google.callback
   },
   function(accessToken, refreshToken, profile, done) {
     User.findOne({
@@ -47,10 +48,10 @@ module.exports = function(passport) {
       }
       if (!user) {
         user = new User({
-          name: profile.displayName,
-          email: 'google',
-          provider: 'google',
-          'provider_ID': profile.id
+            name: profile.displayName,
+            email: 'google',//profile.emails[0].value,
+            provider: 'google',
+            'provider_ID': profile.id
         });
         user.save(function(err) {
           if (err) console.log(err);
@@ -63,7 +64,7 @@ module.exports = function(passport) {
             });
   }
   ));
-
+  /*
   passport.serializeUser(function(user, done) {
     done(null, user.id);
   });
@@ -72,5 +73,6 @@ module.exports = function(passport) {
     User.findById(id, function(err, user) {
       done(err, user);
     });
-  });
+  }
+  );*/
 };
