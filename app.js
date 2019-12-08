@@ -313,7 +313,7 @@ app.get('/api/organizers', function(req, res){
 });
 
 //Comments Routes
-app.post('/api/comments', ensureAuthenticated, (req, res) => { 
+app.post('/api/comments', (req, res) => { //ensureAuthenticated
 	let comment = new Comment();
 	var eventid = req.body.event_id;
 	var ratingPosted = req.body.rating;
