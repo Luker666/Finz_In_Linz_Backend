@@ -96,8 +96,8 @@ app.get('/', function(req, res){
 	res.send('Please use /api/events, api/organizers, api/places, api/categories, api/comments');
 });
 
-app.use('/api/oauth/google', middleware);
-app.use('/api/comments', middleware);
+//app.use('/api/oauth/google', middleware);
+//app.use('/api/comments', middleware);
 
 
 //Authentication routes
