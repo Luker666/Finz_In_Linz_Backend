@@ -127,7 +127,7 @@ passport.authenticate('google', function(err, user, info){
         } else {
                 //console.log(config.auth.cookieName, token);
 			    res.cookie(config.auth.cookieName, token);
-			    res.redirect('/');
+			    res.redirect('https://linz.findz.at');
         }});
 
 
