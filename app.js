@@ -38,10 +38,20 @@ app.use(bodyParser.json());
 // create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: false }));
 
+/*
 app.use(function(req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	next();
+});
+*/
+
+app.use(function(req, res, next) {
+    res.header('Access-Control-Allow-Credentials', true);
+    res.header('Access-Control-Allow-Origin', req.headers.origin);
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+    next();
 });
 
 app.all('/*', function(req, res, next) {
@@ -126,8 +136,7 @@ passport.authenticate('google', function(err, user, info){
             console.log(err);
         } else {
                 //console.log(config.auth.cookieName, token);
-                res.json({'x-access-token': token});
-			    res.redirect('https://linz.findz.at');
+			    res.redirect('https://linz.findz.at?token=' + token);
         }});
 
 
