@@ -9,6 +9,7 @@ var {ensureAuthenticated} = require('./config/auth');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var jwt = require('jsonwebtoken');
 var ObjectId = require('mongodb').ObjectID;
+var config  = require('./config/config');
 
 User = require('./models/users');
 Event = require('./models/events');
@@ -68,10 +69,9 @@ function middleware(req, res, next) {
   if (token) {
     try {
       var decoded = jwt.verify(token, config.auth.token.secret);
-
+      console.log(decoded);
       req.principal = {
         isAuthenticated: true,
-        roles: decoded.roles || [],
         user: decoded.user
       };
       return next();
@@ -99,7 +99,6 @@ app.get('/', function(req, res){
 //app.use('/api/oauth/google', middleware);
 app.use('/api/comments', middleware);
 
-
 //Authentication routes
 
 //Google OAUTH 2.0
@@ -114,28 +113,30 @@ passport.authenticate('google', function(err, user, info){
     }
 
     var userData = { name: user.name };
-    var rolesData = {};
-    user.roles.forEach(function(r) {
-      rolesData[r] = true;
-    });
 
     var tokenData = {
-      user: userData,
-      roles: rolesData
+      user: userData
     };
 
     var token = jwt.sign(tokenData,
                          config.auth.token.secret,
-                         { expiresInMinutes: config.auth.token.expiresInMinutes });
+                         { expiresIn: config.auth.token.expiresIn },
+    function(err, token) {
+        if (err) {
+            console.log(err);
+        } else {
+                //console.log(config.auth.cookieName, token);
+			    res.cookie(config.auth.cookieName, token);
+			    res.redirect('/');
+        }});
 
-    res.cookie(config.auth.cookieName, token);
-    res.redirect('/#/');
+
 
   })(req, res, next);
 });
 
 app.get('/api/oauth/googleUserProfile', 
-	passport.authenticate('google', { failureRedirect: 'api/login' }),
+	passport.authenticate('google', { failureRedirect: '/api' }),
 	(req, res) =>{ res.send(req.user)});
 
 
@@ -313,7 +314,7 @@ app.get('/api/organizers', function(req, res){
 });
 
 //Comments Routes
-app.post('/api/comments', (req, res) => { //ensureAuthenticated
+app.post('/api/comments', ensureAuthenticated,  (req, res) => { //ensureAuthenticated
 	let comment = new Comment();
 	var eventid = req.body.event_id;
 	var ratingPosted = req.body.rating;
