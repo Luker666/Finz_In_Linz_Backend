@@ -7,7 +7,9 @@ var session = require('express-session');
 var passport = require('passport');
 var {ensureAuthenticated} = require('./config/auth');
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
-
+var jwt = require('jsonwebtoken');
+var ObjectId = require('mongodb').ObjectID;
+var config  = require('./config/config');
 
 User = require('./models/users');
 Event = require('./models/events');
@@ -48,15 +50,38 @@ app.all('/*', function(req, res, next) {
 });
 
 //Express Session middleware
+/*
 app.use(session({
 	secret: 'secret',
 	resave: true,
 	saveUninitialized: true
 }));
-
+*/
 // Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
+
+
+//JWT Middelware
+function middleware(req, res, next) {
+  var token = req.headers['x-access-token'];
+
+  if (token) {
+    try {
+      var decoded = jwt.verify(token, config.auth.token.secret);
+      console.log(decoded);
+      req.principal = {
+        isAuthenticated: true,
+        user: decoded.user
+      };
+      return next();
+
+    } catch (err) { console.log('ERROR when parsing access token.', err); }
+  }
+
+  return res.status(401).json({ error: 'Invalid access token!' });
+}
+
 
 //Check for DB errors
 db.on('error', function(err){
@@ -71,7 +96,8 @@ app.get('/', function(req, res){
 	res.send('Please use /api/events, api/organizers, api/places, api/categories, api/comments');
 });
 
-
+//app.use('/api/oauth/google', middleware);
+app.use('/api/comments', middleware);
 
 //Authentication routes
 
@@ -79,14 +105,38 @@ app.get('/', function(req, res){
 app.get('/api/oauth/google', 
 	passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
 
-app.get('/api/oauth/google/callback', 
-	passport.authenticate('google', { failureRedirect: 'api/login' }),
-	function(req, res) {
-		res.redirect('api/events');
-	});
+app.get('/api/oauth/google/callback', function(req, res, next){
+passport.authenticate('google', function(err, user, info){
+    if (err) return next(err);
+    if (!user) {
+      return res.json({error: 'Login failed'})//res.redirect('/#/login');
+    }
+
+    var userData = { name: user.name };
+
+    var tokenData = {
+      user: userData
+    };
+
+    var token = jwt.sign(tokenData,
+                         config.auth.token.secret,
+                         { expiresIn: config.auth.token.expiresIn },
+    function(err, token) {
+        if (err) {
+            console.log(err);
+        } else {
+                //console.log(config.auth.cookieName, token);
+			    res.cookie(config.auth.cookieName, token);
+			    res.redirect('/');
+        }});
+
+
+
+  })(req, res, next);
+});
 
 app.get('/api/oauth/googleUserProfile', 
-	passport.authenticate('google', { failureRedirect: 'api/login' }),
+	passport.authenticate('google', { failureRedirect: '/api' }),
 	(req, res) =>{ res.send(req.user)});
 
 
@@ -264,7 +314,7 @@ app.get('/api/organizers', function(req, res){
 });
 
 //Comments Routes
-app.post('/api/comments',(req, res) => { //ensureAuthenticated
+app.post('/api/comments', ensureAuthenticated,  (req, res) => { //ensureAuthenticated
 	let comment = new Comment();
 	var eventid = req.body.event_id;
 	var ratingPosted = req.body.rating;
