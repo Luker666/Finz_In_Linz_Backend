@@ -136,6 +136,7 @@ passport.authenticate('google', function(err, user, info){
             console.log(err);
         } else {
                 //console.log(config.auth.cookieName, token);
+	  	        res.cookie(config.auth.cookieName, token);
 			    res.redirect('https://linz.findz.at?token=' + token);
         }});
 
@@ -323,7 +324,7 @@ app.get('/api/organizers', function(req, res){
 });
 
 //Comments Routes
-app.post('/api/comments', ensureAuthenticated,  (req, res) => { //ensureAuthenticated
+app.post('/api/comments', (req, res) => { //ensureAuthenticated
 	let comment = new Comment();
 	var eventid = req.body.event_id;
 	var ratingPosted = req.body.rating;
