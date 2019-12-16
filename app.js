@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
+var cookieParser = require('cookie-parser');
 var mongoose = require('mongoose');
 var bcrypt = require('bcryptjs');
 var session = require('express-session');
@@ -10,6 +11,7 @@ var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var jwt = require('jsonwebtoken');
 var ObjectId = require('mongodb').ObjectID;
 var config  = require('./config/config');
+
 
 User = require('./models/users');
 Event = require('./models/events');
@@ -38,6 +40,9 @@ app.use(bodyParser.json());
 // create application/x-www-form-urlencoded parser
 app.use(bodyParser.urlencoded({ extended: false }));
 
+
+app.use(cookieParser());
+
 /*
 app.use(function(req, res, next) {
 	res.header("Access-Control-Allow-Origin", "*");
@@ -47,16 +52,16 @@ app.use(function(req, res, next) {
 */
 
 app.use(function(req, res, next) {
-    res.header('Access-Control-Allow-Credentials', true);
-    res.header('Access-Control-Allow-Origin', req.headers.origin);
-    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-    res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
-    next();
+	res.header('Access-Control-Allow-Credentials', true);
+	res.header('Access-Control-Allow-Origin', req.headers.origin);
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+	res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+	next();
 });
 
 app.all('/*', function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    next();
+	res.header("Access-Control-Allow-Origin", "*");
+	next();
 });
 
 //Express Session middleware
@@ -74,22 +79,27 @@ app.use(passport.session());
 
 //JWT Middelware
 function middleware(req, res, next) {
-  var token = req.headers['x-access-token'];
+		//console.log(req.headers['authorization']);//.replace(/^JWT\s/, '');
+		//console.log(req.cookie['Authorization']);
+		console.log(req.headers.authorization);
 
+
+  //var token = req.headers['Authorization'];//.replace(/^JWT\s/, '');
+  var token = req.headers.authorization
   if (token) {
-    try {
-      var decoded = jwt.verify(token, config.auth.token.secret);
-      console.log(decoded);
+  	try {
+  		var decoded = jwt.verify(token, config.auth.token.secret);
+      //console.log(decoded);
       req.principal = {
-        isAuthenticated: true,
-        user: decoded.user
+      	isAuthenticated: true,
+      	user: decoded.user
       };
       return next();
 
-    } catch (err) { console.log('ERROR when parsing access token.', err); }
-  }
+  } catch (err) { console.log('ERROR when parsing access token.', err); }
+}
 
-  return res.status(401).json({ error: 'Invalid access token!' });
+return res.status(401).json({ error: 'Invalid access token!' });
 }
 
 
@@ -116,33 +126,34 @@ app.get('/api/oauth/google',
 	passport.authenticate('google', { scope: ['https://www.googleapis.com/auth/plus.login'] }));
 
 app.get('/api/oauth/google/callback', function(req, res, next){
-passport.authenticate('google', function(err, user, info){
-    if (err) return next(err);
-    if (!user) {
+	passport.authenticate('google', function(err, user, info){
+		if (err) return next(err);
+		if (!user) {
       return res.json({error: 'Login failed'})//res.redirect('/#/login');
-    }
+  }
 
-    var userData = { name: user.name };
+  var userData = { name: user.name };
 
-    var tokenData = {
-      user: userData
-    };
+  var tokenData = {
+  	user: userData
+  };
 
-    var token = jwt.sign(tokenData,
-                         config.auth.token.secret,
-                         { expiresIn: config.auth.token.expiresIn },
-    function(err, token) {
-        if (err) {
-            console.log(err);
-        } else {
-                //console.log(config.auth.cookieName, token);
-	  	        res.cookie(config.auth.cookieName, token);
-			    res.redirect('https://linz.findz.at?token=' + token);
-        }});
+  var token = jwt.sign(tokenData,
+  	config.auth.token.secret,
+  	{ expiresIn: config.auth.token.expiresIn },
+  	function(err, token) {
+  		if (err) {
+  			console.log(err);
+  		} else {
+  			res.setHeader('Cache-Control', 'private');
+  			res.cookie('authorization', token);
+				//res.send("done");
+				res.redirect('https://linz.findz.at?token=' + token);
+			}});
 
 
 
-  })(req, res, next);
+})(req, res, next);
 });
 
 app.get('/api/oauth/googleUserProfile', 
@@ -382,16 +393,16 @@ app.post('/api/comments', (req, res) => { //ensureAuthenticated
 		}
 	})
 
-	comment.save(function(err){
-		if(err){
-			console.log(err);
-			return;
-		} else {
-			res.json({
-				comment
-			});
-		}
-	});
+comment.save(function(err){
+	if(err){
+		console.log(err);
+		return;
+	} else {
+		res.json({
+			comment
+		});
+	}
+});
 });
 
 app.get('/api/comments', function(req, res){

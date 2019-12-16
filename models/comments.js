@@ -16,8 +16,7 @@
  		required: true
  	},
  	published:{
- 		type: Date,
- 		default: Date.now
+ 		type: Date
  	},
  	rating:{
  		type: Number,
