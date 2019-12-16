@@ -34,45 +34,45 @@ module.exports = function(passport) {
     );
 */
 
-  passport.use(new GoogleStrategy({
-      clientID        : config.auth.google.clientId,
-      clientSecret    : config.auth.google.clientSecret,
-      callbackURL     : config.auth.google.callback
-  },
-  function(accessToken, refreshToken, profile, done) {
-    User.findOne({
-      'provider_ID': profile.id, provider: 'google'
-    },function(err, user) {
-      if (err) {
-        return done(err);
-      }
-      if (!user) {
-        user = new User({
-            name: profile.displayName,
+passport.use(new GoogleStrategy({
+  clientID        : config.auth.google.clientId,
+  clientSecret    : config.auth.google.clientSecret,
+  callbackURL     : config.auth.google.callback
+},
+function(accessToken, refreshToken, profile, done) {
+  User.findOne({
+    'provider_ID': profile.id, provider: 'google'
+  },function(err, user) {
+    if (err) {
+      return done(err);
+    }
+    if (!user) {
+      user = new User({
+        name: profile.displayName,
             email: 'google',//profile.emails[0].value,
             provider: 'google',
             'provider_ID': profile.id
-        });
-        user.save(function(err) {
-          if (err) console.log(err);
-          return done(err, user);
-        });
-      } else {
+          });
+      user.save(function(err) {
+        if (err) console.log(err);
+        return done(err, user);
+      });
+    } else {
                 //found user. Return
                 return done(err, user);
               }
             });
-  }
-  ));
+}
+));
 
-  passport.serializeUser(function(user, done) {
-    done(null, user.id);
+passport.serializeUser(function(user, done) {
+  done(null, user.id);
+});
+
+passport.deserializeUser(function(id, done) {
+  User.findById(id, function(err, user) {
+    done(err, user);
   });
-
-  passport.deserializeUser(function(id, done) {
-    User.findById(id, function(err, user) {
-      done(err, user);
-    });
-  }
-  );
+}
+);
 };
