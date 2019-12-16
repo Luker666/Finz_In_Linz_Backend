@@ -11,7 +11,7 @@ var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 var jwt = require('jsonwebtoken');
 var ObjectId = require('mongodb').ObjectID;
 var config  = require('./config/config');
-
+var cors = require('cors')
 
 User = require('./models/users');
 Event = require('./models/events');
@@ -54,8 +54,8 @@ app.use(function(req, res, next) {
 app.use(function(req, res, next) {
 	res.header('Access-Control-Allow-Credentials', true);
 	res.header('Access-Control-Allow-Origin', req.headers.origin);
-	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
-	res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept');
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+	res.header('Access-Control-Allow-Headers', 'X-Requested-With, X-HTTP-Method-Override, Content-Type, Accept, Authorization');
 	next();
 });
 
@@ -81,9 +81,7 @@ app.use(passport.session());
 function middleware(req, res, next) {
 		//console.log(req.headers['authorization']);//.replace(/^JWT\s/, '');
 		//console.log(req.cookie['Authorization']);
-		console.log(req.headers.authorization);
-
-
+		console.log(req.headers);
   //var token = req.headers['Authorization'];//.replace(/^JWT\s/, '');
   var token = req.headers.authorization
   if (token) {
@@ -117,7 +115,7 @@ app.get('/', function(req, res){
 });
 
 //app.use('/api/oauth/google', middleware);
-app.use('/api/comments', middleware);
+app.use('/api/comments_post', cors(), middleware);
 
 //Authentication routes
 
@@ -145,8 +143,8 @@ app.get('/api/oauth/google/callback', function(req, res, next){
   		if (err) {
   			console.log(err);
   		} else {
-  			res.setHeader('Cache-Control', 'private');
-  			res.cookie('authorization', token);
+  			//res.setHeader('Cache-Control', 'private');
+  			res.cookie('authorization', token, {expires: 400000});
 				//res.send("done");
 				res.redirect('https://linz.findz.at?token=' + token);
 			}});
@@ -335,7 +333,7 @@ app.get('/api/organizers', function(req, res){
 });
 
 //Comments Routes
-app.post('/api/comments', (req, res) => { //ensureAuthenticated
+app.post('/api/comments_post', (req, res) => { //ensureAuthenticated
 	let comment = new Comment();
 	var eventid = req.body.event_id;
 	var ratingPosted = req.body.rating;
